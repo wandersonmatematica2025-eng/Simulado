@@ -74,6 +74,8 @@
   .modal h3{font-size:17px;margin-bottom:.8rem}
   .modal input{margin-bottom:.8rem}
   .merr{color:#c0392b;font-size:13px;margin-bottom:.5rem;display:none}
+  .topt{padding:7px 16px;font-size:13px;border:1px solid #ccc;border-radius:8px;cursor:pointer;background:#fff;transition:all .15s}
+  .topt.active{background:#0F6E56;color:#fff;border-color:#0F6E56}
   .teacher-link{text-align:center;margin-top:2rem;font-size:12px;color:#bbb}
   .teacher-link a{color:#bbb;text-decoration:none;cursor:pointer}
   .teacher-link a:hover{color:#0F6E56}
@@ -99,6 +101,16 @@
     <div class="field">
       <label>Curso *</label>
       <input type="text" id="scourse" placeholder="Ex: Engenharia Civil, Matemática..." />
+    </div>
+    <div class="field">
+      <label>Tempo para realizar a prova *</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="topts">
+        <div class="topt" data-m="20">20 min</div>
+        <div class="topt" data-m="30">30 min</div>
+        <div class="topt active" data-m="40">40 min</div>
+        <div class="topt" data-m="60">60 min</div>
+        <div class="topt" data-m="90">90 min</div>
+      </div>
     </div>
     <button class="btn" onclick="startExam()">Iniciar prova ▶</button>
   </div>
@@ -200,21 +212,22 @@ const QS=[
   {t:1,q:"Calcule ∫ eˣ·cos(x) dx  (partes cíclico)",opts:["eˣ·sin(x)+C","eˣ·cos(x)+C","eˣ(sin(x)−cos(x))/2+C","eˣ(sin(x)+cos(x))/2+C","eˣ·sin(x)·cos(x)+C"],ans:3,sol:["Aplique partes: I = eˣsin(x) − ∫eˣsin(x)dx.","Aplique partes de novo em ∫eˣsin(x)dx = −eˣcos(x)+∫eˣcos(x)dx.","Então 2I = eˣ(sin(x)+cos(x)) → I = eˣ(sin(x)+cos(x))/2+C."]}
 ];
 
-let answers=new Array(15).fill(-1),timerSec,totalSec,tInterval;
+let answers=new Array(15).fill(-1),timerSec,totalSec,tInterval,selTime=40;
 let sName='',sSchool='',sCourse='';
 
+document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.topt').forEach(el=>{el.addEventListener('click',()=>{document.querySelectorAll('.topt').forEach(e=>e.classList.remove('active'));el.classList.add('active');selTime=parseInt(el.dataset.m);});});});
 function show(id){['screen-register','screen-exam','screen-result','screen-teacher'].forEach(s=>document.getElementById(s).style.display=s===id?'block':'none');}
 
 function startExam(){
-  sName=document.getElementById('sname').value.trim();
-  sSchool=document.getElementById('sschool').value.trim();
-  sCourse=document.getElementById('scourse').value.trim();
-  if(!sName){alert('Informe seu nome completo.');return;}
-  if(!sSchool){alert('Informe sua escola/instituição.');return;}
-  if(!sCourse){alert('Informe seu curso.');return;}
+  sName=document.getElementById('sname').value.replace(/\s+$/,'').replace(/^\s+/,'');
+  sSchool=document.getElementById('sschool').value.replace(/\s+$/,'').replace(/^\s+/,'');
+  sCourse=document.getElementById('scourse').value.replace(/\s+$/,'').replace(/^\s+/,'');
+  if(sName.length<2){alert('Por favor, informe seu nome.');return;}
+  if(sSchool.length<2){alert('Por favor, informe sua escola/instituição.');return;}
+  if(sCourse.length<2){alert('Por favor, informe seu curso.');return;}
   show('screen-exam');
   document.getElementById('sbar').innerHTML=`<b>Aluno:</b> ${sName} &nbsp;|&nbsp; <b>Escola:</b> ${sSchool} &nbsp;|&nbsp; <b>Curso:</b> ${sCourse}`;
-  totalSec=timerSec=EXAM_MINUTES*60;
+  totalSec=timerSec=selTime*60;
   buildNav(); buildQuestions(); updateTimer();
   tInterval=setInterval(()=>{timerSec--;updateTimer();if(timerSec<=0){clearInterval(tInterval);finishExam(true);}},1000);
 }
